@@ -31,30 +31,55 @@ void turnOn() {
     digitalWrite(RELAY_BLUE_LED_PIN, isOn);
   }
 }
+
+String getHeader() {
+  return
+  "<head>\n"
+  "    <meta name=viewport content='width=250'>\n"
+  "    <style>\n"
+  "      body {\n"
+  "        background-color: whitesmoke;\n"
+  "        font-family: Helvetica;\n"
+  "      }\n"
+  "    </style>\n"
+  "</head>\n";
+}
  
 void handleRoot() {
   time_t now = time(nullptr);
   String currentTime = ctime(&now);
   if (isOn) {
-    server.send(200, "text/html", "<h1>Internet is ON</h1><p>Current time is: " + currentTime + "</p>");
+    server.send(200, "text/html", getHeader() +
+      "<body>\n"
+      "    <h1>Internet is ON</h1>\n"
+      "    <p>Current time is: " + currentTime + "</p>\n"
+      "</body>");
   } else {
     String onfor = server.arg("onfor");
     if (onfor == "15") {
       extraTimeUntil = time(nullptr) + 900;
-      server.send(200, "text/html", "<h1>Switching on for another 15 minutes</h1>");
+      server.send(200, "text/html", getHeader() +
+        "<body>\n"
+        "    <h3>Switching on for another 15 minutes</h3>\n"
+        "</body>");
     } else if (onfor == "30") {
       extraTimeUntil = time(nullptr) + 1800;
-      server.send(200, "text/html", "<h1>Switching on for another 30 minutes</h1>");
+      server.send(200, "text/html", getHeader() +
+        "<body>\n"
+        "    <h3>Switching on for another 30 minutes</h3>\n"
+        "</body>");
     } else {
-      server.send(200, "text/html", 
-      "<h1>Internet is OFF</h1>\n"
-      "<p>Current time is: " + currentTime + "</p>\n"
-      "<div>\n"
-      "    <form method='get' action='/'>\n"
-      "        <button type='submit' name='onfor' value='15'>Switch on for 15 minutes</button>\n"
-      "        <button type='submit' name='onfor' value='30'>Switch on for 30 minutes</button>\n"
-      "    </form>\n"
-      "</div>\n");
+      server.send(200, "text/html", getHeader() +
+        "<body>\n"
+        "    <h1>Internet is OFF</h1>\n"
+        "    <p>Current time is: " + currentTime + "</p>\n"
+        "    <div>\n"
+        "        <form method='get' action='/'>\n"
+        "            <p><button type='submit' name='onfor' value='15'>Switch on for 15 minutes</button></p>\n"
+        "            <p><button type='submit' name='onfor' value='30'>Switch on for 30 minutes</button></p>\n"
+        "        </form>\n"
+        "    </div>\n"
+        "</body>\n");
     }
   }
 }
@@ -65,7 +90,7 @@ void setup() {
   pinMode(RELAY_BLUE_LED_PIN, OUTPUT);
  
   digitalWrite(GREEN_LED_PIN, HIGH);   // Turn Green LED OFF
-  digitalWrite(RELAY_BLUE_LED_PIN, LOW);  // Turn relay OFF
+  digitalWrite(RELAY_BLUE_LED_PIN, HIGH);  // Turn relay ON
  
   // Attach an interrupt to the pin, assign the onChange function as a handler and trigger on changes (LOW or HIGH).
   attachInterrupt(BUTTON_PIN, onSwitchChange, CHANGE);
