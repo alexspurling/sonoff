@@ -2,7 +2,17 @@
 #include <ESP8266WebServer.h>
 #include <time.h>
 #include "ssid.h"
- 
+
+/*
+ * Sonof PINOUT:
+ * GND <- LED
+ * RXD (grey)
+ * TXD (brown)
+ * 3V3 <- Triangle
+ * 
+ * Hold button when connecting USB to enable boot mode
+ */
+
 IPAddress localIP(192,168,4,1);
 IPAddress gateway(192,168,4,1);
 IPAddress subnet(255,255,255,0);
@@ -104,6 +114,11 @@ void setup() {
     Serial.print(".");
     delay(1000);
   }
+  // Specifies that the clocks go forward on the last sunday of march at 1am
+  // and backwards on the last sunday of October at 2am
+  // https://remotemonitoringsystems.ca/time-zone-abbreviations.php
+  setenv("TZ", "GMT+0BST-1,M3.5.0/01:00:00,M10.5.0/02:00:00", 1);
+  tzset();
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
   Serial.println("Waiting for time");
   // By default time returns a time of around epoch + 8 hours for some reason before it has synched
@@ -113,7 +128,10 @@ void setup() {
   }
   Serial.println("Got time from NTP: ");
   time_t now = time(nullptr);
-  Serial.println(ctime(&now));
+  Serial.print(ctime(&now));
+  struct tm * timeinfo = localtime(&now);
+  Serial.print("DST Enabled: ");
+  Serial.println(timeinfo->tm_isdst);
 
   Serial.println("Switching to Access Point mode");
   
@@ -131,27 +149,32 @@ void setup() {
  
 void loop() {
   time_t now = time(nullptr);
-  struct tm * timeinfo = localtime (&now);
+  struct tm * timeinfo = localtime(&now);
+  
   boolean weekday = timeinfo->tm_wday >= 1 && timeinfo->tm_wday <= 5;
   int hour = timeinfo->tm_hour;
+  int minute = timeinfo->tm_min;
   // Weekday is number between 1 and 7. Monday is 1. Saturday 6, Sunday 7
   if (now < extraTimeUntil) {
     turnOn();
-  } else if (weekday && (hour >= 10 && hour < 16)) {
-    // Work time! TURN OFF
+  } else if (weekday && (hour >= 11 && hour < 16)) {
+    // Work time!
+    turnOff();
+  } else if (hour == 0 && minute >= 15) {
+    // Bed time!
     turnOff();
   } else if (hour >= 1 && hour < 6) {
-    // Sleep time! TURN OFF
+    // Sleep time!
     turnOff();
   } else {
     turnOn();
   }
   server.handleClient();
 }
- 
+
 volatile long lastEventTime = 0;
 volatile bool lastState = HIGH;
- 
+
 void onSwitchChange() {
   long currentTime = millis();
   bool currentState = digitalRead(BUTTON_PIN);
