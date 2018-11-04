@@ -12,3 +12,5 @@ I wrote this code to run on a Sonoff S20 switch with my internet router plugged 
 It also provides a simple web interface to switch on the router for an additional 15 or 30 minutes
 
 ![Screenshot of web interface](screenshot.png)
+
+This is inspired by a similar project by Trandi: https://trandi.wordpress.com/2018/01/14/custom-remote-wifi-mains-socket-switch/
