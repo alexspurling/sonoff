@@ -4,6 +4,11 @@
 #include "ssid.h"
 
 /*
+ * Arduino IDE settings:
+ * Board: "Generic ESP8266 Module"
+ * Flash Mode: "DOUT"
+ * Flash Size: "1M (no SPIFFS)"
+ * Upload Speed: "115200"
  * Sonof PINOUT:
  * GND <- LED
  * RXD (grey)
